@@ -2,38 +2,25 @@
     <van-config-provider :theme-vars="appStore.themeVars">
         <view>
             <!-- 导航栏 -->
-            <van-nav-bar title="新闻合约测试">
-                <template #left>
+            <van-nav-bar title="交易市场">
+                <template #right>
                     <view class="text-white" v-if="appStore.isConnect" @tap="appStore.copy">{{ appStore.subAddress }}</view>
                     <view v-else>
                         <van-button type="primary" size="small" @click="appStore.dappInit">连接钱包</van-button>
                     </view>
                 </template>
-                <template #right>
-                    <van-button type="primary" size="small" @click="publish">发布新闻</van-button>
-                </template>
             </van-nav-bar>
             <view class="px-3 pt-3">
                 <van-cell-group v-if="appStore.dapp.lists.length">
-                    <van-cell 
-                        v-for="(item, index) in appStore.dapp.lists" 
-                        :key="item.id" 
-                        :title="item.title" 
-                        :value="timeFormat(item.timestamp)" 
-                        center 
-                        @click="detail(index)"
-                    >
+                    <van-cell v-for="(item, index) in appStore.dapp.lists" :key="item.id" :title="item.title"
+                        :value="timeFormat(item.timestamp)" center @click="detail(index)">
                         <template #right-icon>
                             <van-icon name="arrow" />
                         </template>
                     </van-cell>
                 </van-cell-group>
-                <van-empty
-                    v-else
-                    image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
-                    image-size="80"
-                    description="暂无新闻"
-                />
+                <van-empty v-else image="https://fastly.jsdelivr.net/npm/@vant/assets/custom-empty-image.png"
+                    image-size="80" description="暂无订单" />
             </view>
         </view>
     </van-config-provider>

@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract DutchMarket {
+contract Market {
     // 账号集合映射（private不公开）
     // 账号地址 => 以太坊余额 + (代币地址 => 代币余额)
     mapping(address => Account) private accounts;
@@ -94,7 +94,7 @@ contract DutchMarket {
         return accounts[msg.sender].tokenBalances[tokenAddress];
     }
 
-    // 获取卖单信息
+    // 获取卖单详情
     function getOffer(uint256 offerNumber) public view returns (Offer memory) {
         // 校验卖单号
         require(offers[offerNumber].offerNumber != 0, "Offer not fund");
@@ -102,12 +102,40 @@ contract DutchMarket {
         return offers[offerNumber];
     }
 
-    // 获取买单信息
+    // 获取买单详情
     function getBid(uint256 bidNumber) public view returns (Bid memory) {
         // 校验买单号
         require(bids[bidNumber].bidNumber != 0, "Bid not fund");
         // 返回买单信息
         return bids[bidNumber];
+    }
+
+    // 获取卖单列表
+    function getOffersList() public view returns (Offer[] memory) {
+        Offer[] memory offersList = new Offer[](offersCount);
+        uint i = 0;
+        for (uint id = 1; id <= offersCount; id++) {
+            Offer storage offer = offers[id];
+            if (offer.matched == false) {
+                offersList[i] = offer;
+                i++;
+            }
+        }
+        return offersList;
+    }
+
+    // 获取买单列表
+    function getBidsList() public view returns (Bid[] memory) {
+        Bid[] memory bidsList = new Bid[](bidsCount);
+        uint i = 0;
+        for (uint id = 1; id <= bidsCount; id++) {
+            Bid storage bid = bids[id];
+            if (bid.matched == false) {
+                bidsList[i] = bid;
+                i++;
+            }
+        }
+        return bidsList;
     }
 
     // ETH存款
@@ -304,7 +332,7 @@ contract DutchMarket {
                     offers[j].tokenAddress == bids[i].tokenAddress && 
                     offers[j].price <= bids[i].price && 
                     offers[j].quantity > 0 && bids[i].quantity > 0 &&
-                    offers[j].seller != bids[i].bidder
+                    offers[j].seller != bids[i].buyer
                 ) {
                     // 交易数量 = 卖单数量 < 买单数量 ? 卖单数量 : 买单数量
                     uint256 quantity = offers[j].quantity < bids[i].quantity ? offers[j].quantity : bids[i].quantity;
@@ -317,7 +345,7 @@ contract DutchMarket {
                     // 如果卖家代币不足，则跳过这个卖单，继续匹配下一个
                     if (accounts[offers[j].seller].tokenBalances[offers[j].tokenAddress] < quantity) continue;
                     // 如果买家ETH不足，则跳出，直接匹配下一个买单
-                    if (accounts[bids[i].bidder].balance < cost) break;
+                    if (accounts[bids[i].buyer].balance < cost) break;
 
                     // 卖家获得ETH
                     accounts[offers[j].seller].balance += cost;
@@ -334,9 +362,9 @@ contract DutchMarket {
                     }
 
                     // 真实买家A扣除ETH
-                    accounts[bids[i].bidder].balance -= cost;
+                    accounts[bids[i].buyer].balance -= cost;
                     // 真实买家A获得代币
-                    accounts[bids[i].bidder].tokenBalances[bids[i].tokenAddress] += quantity;
+                    accounts[bids[i].buyer].tokenBalances[bids[i].tokenAddress] += quantity;
                     // 买单数量减少
                     bids[i].quantity -= quantity;
                     // 如果买单数量减少为0，则买单标记为已成交
@@ -349,7 +377,7 @@ contract DutchMarket {
 
                     // 发出成交事件
                     // 公开卖单号、买单号、价格、数量、卖家、真实买家A
-                    emit Trade(offers[j].tokenAddress, offers[j].offerNumber, bids[i].bidNumber, offers[j].price, quantity, offers[j].seller, bids[i].bidder);
+                    emit Trade(offers[j].tokenAddress, offers[j].offerNumber, bids[i].bidNumber, offers[j].price, quantity, offers[j].seller, bids[i].buyer);
                 }
             }
         }

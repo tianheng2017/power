@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, reactive, computed } from 'vue'
 import { showDialog } from 'vant'
 import Web3 from 'web3'
-import NewsContract from '@/contracts/NewsContract.json'
+import Market from '@/contracts/Market.json'
+import Token from '@/contracts/Market.json'
 
 const useAppStore = defineStore('app', () => {
     // 全局组件样式
@@ -21,7 +22,8 @@ const useAppStore = defineStore('app', () => {
     // web3/合约数据
     const dapp = reactive({
         web3: null,
-        NewsContractInstance: null,
+        marketInstance: null,
+        tokenInstance: null,
         lists: [],
     })
 
@@ -54,8 +56,10 @@ const useAppStore = defineStore('app', () => {
             isConnect.value = true
             // 初始化web3
             dapp.web3 = new Web3(Web3.givenProvider)
-            // 实例化NewsContract合约
-            dapp.NewsContract = new dapp.web3.eth.Contract(NewsContract.abi, NewsContract.networks[1337].address)
+            // 实例化market合约
+            dapp.marketInstance = new dapp.web3.eth.Contract(marketInstance.abi, marketInstance.networks[1337].address)
+            // 实例化token合约
+            dapp.tokenInstance = new dapp.web3.eth.Contract(tokenInstance.abi, tokenInstance.networks[1337].address)
         } catch (error) {
             if (error.code == 4001) error.message = "用户拒绝连接钱包"
             if (error.code == -32002) error.message = "请求已经在等待处理，请耐心等待"
@@ -84,27 +88,12 @@ const useAppStore = defineStore('app', () => {
         })
     }
 
-    // 获取全部新闻数据
-    const getNewsList = async () => {
+    // 获取全部卖单
+    const getOffersList = async () => {
         try {
             const res = await dapp.NewsContract.methods.getNewsList().call()
             dapp.lists = res
             console.log(dapp.lists)
-        } catch (error) {
-            return showDialog({ message: error.message })
-        }
-    }
-
-    // 发布新闻
-    const publishNews = async (data) => {
-        try {
-            const res = await dapp.NewsContract.methods.publishNews(data.title, data.content).send({from: address.value, gas: 3000000})
-            console.log(res)
-            return showDialog({ message: `发布成功，交易hash: ${res.transactionHash}` }).then(() => {
-                uni.navigateTo({
-                    url: '/pages/index/index'
-                })
-            });
         } catch (error) {
             return showDialog({ message: error.message })
         }
@@ -119,8 +108,7 @@ const useAppStore = defineStore('app', () => {
         dappInit,
         backHome,
         copy,
-        getNewsList,
-        publishNews,
+        getOffersList,
     }
 }, {
     persist: true
