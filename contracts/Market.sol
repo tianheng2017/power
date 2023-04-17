@@ -325,14 +325,12 @@ contract Market {
                 // 如果买卖单都未成交
                 // 且买卖双方代币类型也相同
                 // 且卖单价格 <= 买单价格，且卖单数量 > 0，且买单数量 > 0
-                // 且买卖双方不能是同一个人
                 if (
                     bids[i].matched == false &&
                     offers[j].matched == false && 
                     offers[j].tokenAddress == bids[i].tokenAddress && 
                     offers[j].price <= bids[i].price && 
-                    offers[j].quantity > 0 && bids[i].quantity > 0 &&
-                    offers[j].seller != bids[i].buyer
+                    offers[j].quantity > 0 && bids[i].quantity > 0
                 ) {
                     // 交易数量 = 卖单数量 < 买单数量 ? 卖单数量 : 买单数量
                     uint256 quantity = offers[j].quantity < bids[i].quantity ? offers[j].quantity : bids[i].quantity;

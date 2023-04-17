@@ -19,12 +19,15 @@ const useAppStore = defineStore('app', () => {
     const subAddress = computed(() => {
         return address.value.slice(0, 5) + '...' + address.value.slice(-5)
     })
+
     // web3/合约数据
     const dapp = reactive({
         web3: null,
         marketInstance: null,
         tokenInstance: null,
-        lists: [],
+        usdtInstance: null,
+        offersLists: [],
+        bidsLists: [],
     })
 
     // 钱包初始化
@@ -57,9 +60,9 @@ const useAppStore = defineStore('app', () => {
             // 初始化web3
             dapp.web3 = new Web3(Web3.givenProvider)
             // 实例化market合约
-            dapp.marketInstance = new dapp.web3.eth.Contract(marketInstance.abi, marketInstance.networks[1337].address)
+            dapp.marketInstance = new dapp.web3.eth.Contract(Market.abi, Market.networks[1337].address)
             // 实例化token合约
-            dapp.tokenInstance = new dapp.web3.eth.Contract(tokenInstance.abi, tokenInstance.networks[1337].address)
+            dapp.tokenInstance = new dapp.web3.eth.Contract(Token.abi, Token.networks[1337].address)
         } catch (error) {
             if (error.code == 4001) error.message = "用户拒绝连接钱包"
             if (error.code == -32002) error.message = "请求已经在等待处理，请耐心等待"
@@ -88,12 +91,39 @@ const useAppStore = defineStore('app', () => {
         })
     }
 
-    // 获取全部卖单
+    // 获取卖单列表
     const getOffersList = async () => {
         try {
-            const res = await dapp.NewsContract.methods.getNewsList().call()
-            dapp.lists = res
-            console.log(dapp.lists)
+            const res = await dapp.marketInstance.methods.getOffersList().call()
+            dapp.offersLists = res
+            console.log(dapp.offersLists)
+        } catch (error) {
+            return showDialog({ message: error.message })
+        }
+    }
+
+    // 获取买单列表
+    const getBidsList = async () => {
+        try {
+            const res = await dapp.marketInstance.methods.getBidsList().call()
+            dapp.bidsLists = res
+            console.log(dapp.bidsLists)
+        } catch (error) {
+            return showDialog({ message: error.message })
+        }
+    }
+
+    // 挂卖单
+    const addOffer = async (price, quantity) => {
+        try {
+            const res = await dapp.marketInstance.methods.addOffer(
+                Token.networks[1337].address,
+                Web3.utils.toWei(price, 'ether'),
+                Web3.utils.toWei(quantity, 'ether'),
+            ).send({
+                from: address.value
+            })
+            console.log(res)
         } catch (error) {
             return showDialog({ message: error.message })
         }
@@ -109,6 +139,8 @@ const useAppStore = defineStore('app', () => {
         backHome,
         copy,
         getOffersList,
+        getBidsList,
+        addOffer,
     }
 }, {
     persist: true

@@ -9,7 +9,8 @@ module.exports = {
     },
     compilers: {
         solc: {
-            version: "0.8.18",
+            // yarn add solc
+            version: "C:\\Users\\Administrator\\Desktop\\power\\node_modules\\solc",
         }
     }
 };
