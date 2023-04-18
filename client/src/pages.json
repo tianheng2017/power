@@ -5,23 +5,11 @@
 			"style": {
 				"navigationBarTitleText": "新闻列表"
 			}
-		},
-        {
-            "path": "pages/index/publish",
-            "style": {
-                "navigationBarTitleText": "发布新闻"
-            }
-        },
-        {
-            "path": "pages/index/detail",
-            "style": {
-                "navigationBarTitleText": "新闻详情"
-            }
-        }
+		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "新闻合约测试",
+		"navigationBarTitleText": "交易市场",
 		"navigationBarBackgroundColor": "#F8F8F8",
 		"backgroundColor": "#F8F8F8",
 		"h5": {

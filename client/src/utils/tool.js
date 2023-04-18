@@ -35,3 +35,7 @@ export const timeFormat = (dateTime, fmt = 'yyyy-mm-dd') => {
     }
     return fmt
 }
+
+export const sliceAddress = (address) => {
+    return address.slice(0, 6) + '...' + address.slice(-6)
+}

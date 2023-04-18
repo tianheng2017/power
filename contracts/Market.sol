@@ -271,53 +271,17 @@ contract Market {
         // 总买单数量减少
         bidsCount--;
     }
-
-    // 所有卖单按价格升序排序
-    // 这样买单才能优先匹配价格最低的卖单，而当两个卖单价格相同时，再去优先匹配等待时间最长的卖单，这样可以保证公平性
-    // 私有函数，只能在合约内部调用
-    function sortOffers() private view returns (uint256[] memory) {
-        uint256[] memory sortedOfferIndices = new uint256[](lastOfferNumber);
-        // 初始化排序数组
-        for (uint256 i = 0; i < lastOfferNumber; i++) {
-            sortedOfferIndices[i] = i + 1;
-        }
-        // 使用冒泡排序对卖单进行排序
-        for (uint256 i = 0; i < lastOfferNumber - 1; i++) {
-            for (uint256 j = 0; j < lastOfferNumber - i - 1; j++) {
-                bool needSwap = false;
-                // 比较价格
-                if (offers[sortedOfferIndices[j]].price > offers[sortedOfferIndices[j + 1]].price) {
-                    needSwap = true;
-                // 如果价格相等，则比较订单号（优先处理等待时间最长的）
-                } else if (offers[sortedOfferIndices[j]].price == offers[sortedOfferIndices[j + 1]].price) {
-                    if (offers[sortedOfferIndices[j]].offerNumber > offers[sortedOfferIndices[j + 1]].offerNumber) {
-                        needSwap = true;
-                    }
-                }
-                if (needSwap) {
-                    // 交换元素
-                    (sortedOfferIndices[j], sortedOfferIndices[j + 1]) = (sortedOfferIndices[j + 1], sortedOfferIndices[j]);
-                }
-            }
-        }
-        return sortedOfferIndices;
-    }
     
     // 撮合订单
     // 用买单依次去匹配所有卖单，直到买单完全成交
     function orderMaching() public {
-        // 获取排序后的卖单索引
-        uint256[] memory sortedOfferIndices = sortOffers();
-
         // 遍历所有买单，订单号从1开始递增，代表优先处理等待时间最长的
         for (uint256 i = 1; i <= lastBidNumber; i++) {
             // 跳过已经完全成交的买单
             if (bids[i].matched == true) continue;
 
-            // 遍历排序后的卖单
-            for (uint256 k = 0; k < sortedOfferIndices.length; k++) {
-                // 当前卖单索引
-                uint256 j = sortedOfferIndices[k];
+            // 遍历卖单
+            for (uint256 j = 0; j < lastOfferNumber; j++) {
 
                 // 如果匹配过程中，买单最后已经完全成交，就不再继续匹配其他卖单了
                 if (bids[i].matched == true) break;
@@ -359,9 +323,9 @@ contract Market {
                         offersCount--;
                     }
 
-                    // 真实买家A扣除ETH
+                    // 买家A扣除ETH
                     accounts[bids[i].buyer].balance -= cost;
-                    // 真实买家A获得代币
+                    // 买家A获得代币
                     accounts[bids[i].buyer].tokenBalances[bids[i].tokenAddress] += quantity;
                     // 买单数量减少
                     bids[i].quantity -= quantity;
@@ -374,7 +338,7 @@ contract Market {
                     }
 
                     // 发出成交事件
-                    // 公开卖单号、买单号、价格、数量、卖家、真实买家A
+                    // 公开卖单号、买单号、价格、数量、卖家、买家
                     emit Trade(offers[j].tokenAddress, offers[j].offerNumber, bids[i].bidNumber, offers[j].price, quantity, offers[j].seller, bids[i].buyer);
                 }
             }
