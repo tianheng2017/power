@@ -10,7 +10,7 @@ module.exports = {
     compilers: {
         solc: {
             // yarn add solc后，找到路径填路径，不然那个下载不了很慢
-            version: "C:\\Users\\Administrator\\Desktop\\power\\node_modules\\solc",
+            version: "./node_modules/solc",
         }
     }
 };
